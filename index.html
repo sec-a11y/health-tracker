@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health & Step Tracker</title>
+  <!-- Tailwind CSS สำหรับตกแต่ง UI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen p-4">
+  <div class="max-w-md mx-auto bg-white rounded-2xl shadow-md p-6">
+    <h2 class="text-xl font-bold text-slate-800 mb-2">บันทึกข้อมูลก้าวเดินประจำวัน</h2>
+    <p id="userProfile" class="text-sm text-slate-500 mb-6">กำลังโหลดข้อมูลผู้ใช้...</p>
+
+    <form id="stepForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700">วันที่เดิน</label>
+        <input type="date" id="stepDate" required class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">จำนวนก้าว (ก้าว)</label>
+        <input type="number" id="stepCount" min="0" placeholder="เช่น 10500" required class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">แนบภาพหลักฐานหน้าจอนับก้าว</label>
+        <input type="file" id="stepImage" accept="image/*" class="w-full mt-1 text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+      </div>
+
+      <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition">
+        บันทึกข้อมูล
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // ----------------------------------------------------
+    // ตั้งค่าตัวแปรสำคัญ
+    // ----------------------------------------------------
+    const MY_LIFF_ID = "2011383737-Wc8xUNnu"; // นำ LIFF ID จากขั้นตอนที่ 1 มาใส่ตรงนี้
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOee908M59lAT0hj5yxtaaEd2H3pVOiYiwKvC-nEyBAsV9eSL0jSdh5X-JRor1WKww/exec"; // นำ URL จาก Apps Script มาใส่ตรงนี้
+    
+    let currentUserId = "";
+
+    // กำหนดวันที่ปัจจุบันในฟอร์มอัตโนมัติ
+    document.getElementById('stepDate').value = new Date().toISOString().split('T')[0];
+
+    // เริ่มต้นเชื่อมต่อ LINE LIFF
+    async function initLiff() {
+      try {
+        await liff.init({ liffId: MY_LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const profile = await liff.getProfile();
+          currentUserId = profile.userId;
+          document.getElementById('userProfile').innerText = `ผู้ใช้งาน: ${profile.displayName}`;
+        }
+      } catch (err) {
+        console.error("LIFF Init Failed:", err);
+      }
+    }
+
+    // แปลงไฟล์ภาพเป็น Base64
+    const toBase64 = file => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+
+    // จัดการส่งฟอร์มข้อมูล
+    document.getElementById('stepForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerText = "กำลังบันทึกข้อมูล...";
+
+      let imageBase64 = "";
+      const fileInput = document.getElementById('stepImage');
+      if (fileInput.files.length > 0) {
+        imageBase64 = await toBase64(fileInput.files[0]);
+      }
+
+      const payload = {
+        action: "submitSteps",
+        data: {
+          line_user_id: currentUserId || "ANONYMOUS_USER",
+          step_date: document.getElementById('stepDate').value,
+          step_count: document.getElementById('stepCount').value,
+          image_base64: imageBase64
+        }
+      };
+
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (result.status === "success") {
+          alert("บันทึกข้อมูลสำเร็จเรียบร้อย!");
+          if (liff.isInClient()) {
+            liff.closeWindow();
+          }
+        } else {
+          alert("เกิดข้อผิดพลาด: " + result.message);
+        }
+      } catch (err) {
+        alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "บันทึกข้อมูล";
+      }
+    });
+
+    window.onload = initLiff;
+  </script>
+</body>
+</html>
