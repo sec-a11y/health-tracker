@@ -15,9 +15,71 @@
         input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         button { width: 100%; padding: 12px; background-color: #00b900; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
         button:disabled { background-color: #cccccc; }
+        
+        /* ส่วนตกแต่ง Pop-up Consent */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            width: 85%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .consent-box {
+            text-align: left;
+            background: #f0fdf4;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #bbf7d0;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #166534;
+            line-height: 1.5;
+        }
+        #btnAccept {
+            background-color: #00b900;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
+
+<!-- Pop-up Consent Modal -->
+<div class="modal-overlay" id="consentModal">
+    <div class="modal-content">
+        <div style="font-size: 45px; margin-bottom: 10px;">🛡️</div>
+        <h3 style="color: #00b900; margin-top: 0;">ประกาศสำคัญ (PDPA)</h3>
+        
+        <p style="text-align: left; font-size: 14px; color: #555; margin-bottom: 5px;">
+            บริษัทฯ มีความจำเป็นต้องเก็บรวบรวมและใช้ข้อมูลสุขภาพของท่าน เพื่อวัตถุประสงค์ในการ:
+        </p>
+        
+        <div class="consent-box">
+            📌 บันทึกและประมวลผลความคืบหน้าของกิจกรรม <b>SIW Health Care Challenge#5</b>
+        </div>
+        
+        <p style="font-size: 13px; color: #ef4444; text-align: left; margin-bottom: 15px;">
+            * ข้อมูลดังกล่าวจะใช้ในกิจกรรมนี้เท่านั้น และจะ <b>ไม่มีการนำไปเผยแพร่</b>
+        </p>
+        
+        <button id="btnAccept">รับทราบและเข้าสู่หน้าลงทะเบียน</button>
+    </div>
+</div>
 
 <div class="container">
     <h2>📝 ลงทะเบียนเข้าร่วมกิจกรรม</h2>
@@ -46,13 +108,22 @@
 </div>
 
 <script>
-    // 1. นำ Web App URL ของ Google Apps Script มาใส่ที่นี่ (ที่ขึ้นต้นด้วย https://script.google.com/...)
+    // 1. นำ Web App URL ของ Google Apps Script มาใส่ที่นี่
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhfaDAwqr2vKHbVdJjZHwqH8eKyGdgXwCLdVkZ7qSOwIdm2ExJf-bfETZdtpN2jHEx/exec'; 
     
     // 2. นำ LIFF ID ที่ได้จาก LINE Developers มาใส่ที่นี่
     const LIFF_ID = '2011383737-Wc8xUNnu'; 
 
     let userLineUid = '';
+
+    // ระบบจัดการ Pop-up Consent
+    const consentModal = document.getElementById('consentModal');
+    const btnAccept = document.getElementById('btnAccept');
+
+    // ปิด Pop-up เมื่อกดปุ่มรับทราบ
+    btnAccept.addEventListener('click', function() {
+        consentModal.style.display = 'none';
+    });
 
     // เริ่มต้นทำงานเมื่อหน้าเว็บโหลด
     async function initializeLiff() {
