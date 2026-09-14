@@ -4,23 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ลงทะเบียน SIW Health Care Challenge#5</title>
+    <!-- เรียกใช้ฟอนต์ Sarabun จาก Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- เรียกใช้ LINE LIFF SDK -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { font-family: 'Sarabun', sans-serif; padding: 20px; background-color: #f4f7f6; }
-        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h2 { color: #00b900; text-align: center; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background-color: #00b900; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        button:disabled { background-color: #cccccc; }
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            margin: 0;
+            padding: 20px; 
+            background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
+            min-height: 100vh;
+        }
+        .container { 
+            background: white; 
+            padding: 30px 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0, 163, 118, 0.15); 
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .header-icon {
+            text-align: center;
+            font-size: 55px;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 { 
+            color: #00897b; 
+            text-align: center; 
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+        .section-title {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 25px 0 15px 0;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-group { margin-bottom: 18px; }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #455a64;
+            font-size: 14px;
+        }
+        input[type="text"], input[type="number"] { 
+            width: 100%; 
+            padding: 12px 15px; 
+            border: 1px solid #cfd8dc; 
+            border-radius: 10px; 
+            box-sizing: border-box; 
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            background-color: #f9fbfb;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            border-color: #00b900;
+            background-color: #ffffff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 185, 0, 0.15);
+        }
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            background: linear-gradient(45deg, #00b900, #009900); 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            box-shadow: 0 4px 15px rgba(0, 185, 0, 0.3);
+            transition: all 0.2s ease;
+            margin-top: 15px;
+            font-family: 'Sarabun', sans-serif;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 185, 0, 0.4);
+        }
+        button:disabled { 
+            background: #cccccc; 
+            box-shadow: none;
+            transform: none;
+        }
         
         /* ส่วนตกแต่ง Pop-up Consent */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(3px);
             z-index: 9999;
             display: flex;
             justify-content: center;
@@ -28,11 +113,11 @@
         }
         .modal-content {
             background: #ffffff;
-            padding: 25px;
-            border-radius: 15px;
+            padding: 30px 25px;
+            border-radius: 20px;
             width: 85%;
             max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             text-align: center;
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -44,16 +129,16 @@
             text-align: left;
             background: #f0fdf4;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid #bbf7d0;
             margin: 15px 0;
             font-size: 14px;
             color: #166534;
-            line-height: 1.5;
+            line-height: 1.6;
         }
         #btnAccept {
-            background-color: #00b900;
-            margin-top: 10px;
+            background: linear-gradient(45deg, #00b900, #009900);
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -62,19 +147,19 @@
 <!-- Pop-up Consent Modal -->
 <div class="modal-overlay" id="consentModal">
     <div class="modal-content">
-        <div style="font-size: 45px; margin-bottom: 10px;">🛡️</div>
-        <h3 style="color: #00b900; margin-top: 0;">ประกาศสำคัญ (PDPA)</h3>
+        <div class="header-icon">🛡️</div>
+        <h3 style="color: #00897b; margin-top: 0; font-size: 22px;">ประกาศสำคัญ (PDPA)</h3>
         
-        <p style="text-align: left; font-size: 14px; color: #555; margin-bottom: 5px;">
+        <p style="text-align: left; font-size: 15px; color: #455a64; margin-bottom: 5px;">
             บริษัทฯ มีความจำเป็นต้องเก็บรวบรวมและใช้ข้อมูลสุขภาพของท่าน เพื่อวัตถุประสงค์ในการ:
         </p>
         
         <div class="consent-box">
-            📌 บันทึกและประมวลผลความคืบหน้าของกิจกรรม <b>SIW Health Care Challenge#5</b>
+            📌 บันทึกและประมวลผลความคืบหน้าของกิจกรรม <br><b>SIW Health Care Challenge#5</b>
         </div>
         
-        <p style="font-size: 13px; color: #ef4444; text-align: left; margin-bottom: 15px;">
-            * ข้อมูลดังกล่าวจะใช้ในกิจกรรมนี้เท่านั้น และจะ <b>ไม่มีการนำไปเผยแพร่</b>
+        <p style="font-size: 13.5px; color: #e53935; text-align: left; margin-bottom: 15px; font-weight: 600;">
+            * ข้อมูลดังกล่าวจะใช้ในกิจกรรมนี้เท่านั้น และจะ <u>ไม่มีการนำไปเผยแพร่</u>
         </p>
         
         <button id="btnAccept">รับทราบและเข้าสู่หน้าลงทะเบียน</button>
@@ -82,36 +167,36 @@
 </div>
 
 <div class="container">
-    <h2>📝 ลงทะเบียนเข้าร่วมกิจกรรม</h2>
+    <div class="header-icon">🏃‍♂️🏃‍♀️</div>
+    <h2>ลงทะเบียนเข้าร่วมกิจกรรม<br>SIW Health Care</h2>
+    
     <form id="registerForm">
-        <!-- ข้อมูลพนักงาน -->
-        <div class="form-group"><label>รหัสพนักงาน</label><input type="text" id="empId" required></div>
-        <div class="form-group"><label>ชื่อ-นามสกุล</label><input type="text" id="name" required></div>
-        <div class="form-group"><label>แผนก</label><input type="text" id="dept" required></div>
-        <div class="form-group"><label>โรคประจำตัว (ถ้าไม่มีให้ขีด -)</label><input type="text" id="condition" required></div>
         
-        <hr>
-        <h3 style="color:#333;">📊 ข้อมูลสุขภาพเริ่มต้น</h3>
+        <div class="section-title">💼 ข้อมูลพนักงาน</div>
+        <div class="form-group"><label>รหัสพนักงาน</label><input type="text" id="empId" placeholder="เช่น 12345" required></div>
+        <div class="form-group"><label>ชื่อ-นามสกุล</label><input type="text" id="name" placeholder="ชื่อ-นามสกุล จริง" required></div>
+        <div class="form-group"><label>แผนก</label><input type="text" id="dept" placeholder="เช่น HR, Production" required></div>
         
-        <div class="form-group"><label>ส่วนสูง (ซม.)</label><input type="number" step="0.1" id="height" required></div>
-        <div class="form-group"><label>น้ำหนัก (กก.)</label><input type="number" step="0.1" id="weight" required></div>
-        <div class="form-group"><label>BMI</label><input type="number" step="0.1" id="bmi" required></div>
-        <div class="form-group"><label>รอบเอว (นิ้ว)</label><input type="number" step="0.1" id="waist" required></div>
-        <div class="form-group"><label>%ไขมันใต้ชั้นผิวหนัง</label><input type="number" step="0.1" id="fatSub"></div>
-        <div class="form-group"><label>ระดับไขมันช่องท้อง</label><input type="number" step="0.1" id="fatVisceral"></div>
-        <div class="form-group"><label>%กล้ามเนื้อโครงร่าง</label><input type="number" step="0.1" id="muscle"></div>
-        <div class="form-group"><label>อายุร่างกาย (ปี)</label><input type="number" id="bodyAge"></div>
-        <div class="form-group"><label>อัตราการเผาผลาญขณะพัก (BMR)</label><input type="number" id="bmr"></div>
+        <div class="section-title">📊 ข้อมูลสุขภาพเริ่มต้น</div>
+        <div class="form-group"><label>ส่วนสูง (ซม.)</label><input type="number" step="0.1" id="height" placeholder="0.0" required></div>
+        <div class="form-group"><label>น้ำหนัก (กก.)</label><input type="number" step="0.1" id="weight" placeholder="0.0" required></div>
+        <div class="form-group"><label>BMI</label><input type="number" step="0.1" id="bmi" placeholder="0.0" required></div>
+        <div class="form-group"><label>รอบเอว (นิ้ว)</label><input type="number" step="0.1" id="waist" placeholder="0.0" required></div>
+        <div class="form-group"><label>%ไขมันใต้ชั้นผิวหนัง</label><input type="number" step="0.1" id="fatSub" placeholder="0.0"></div>
+        <div class="form-group"><label>ระดับไขมันช่องท้อง</label><input type="number" step="0.1" id="fatVisceral" placeholder="0.0"></div>
+        <div class="form-group"><label>%กล้ามเนื้อโครงร่าง</label><input type="number" step="0.1" id="muscle" placeholder="0.0"></div>
+        <div class="form-group"><label>อายุร่างกาย (ปี)</label><input type="number" id="bodyAge" placeholder="0"></div>
+        <div class="form-group"><label>อัตราการเผาผลาญขณะพัก (BMR)</label><input type="number" id="bmr" placeholder="0"></div>
         
-        <button type="submit" id="submitBtn">บันทึกข้อมูล</button>
+        <button type="submit" id="submitBtn">บันทึกข้อมูลสุขภาพ</button>
     </form>
 </div>
 
 <script>
-    // 1. นำ Web App URL ของ Google Apps Script มาใส่ที่นี่
+    // 1. Web App URL (ไม่ต้องเปลี่ยน)
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhfaDAwqr2vKHbVdJjZHwqH8eKyGdgXwCLdVkZ7qSOwIdm2ExJf-bfETZdtpN2jHEx/exec'; 
     
-    // 2. นำ LIFF ID ที่ได้จาก LINE Developers มาใส่ที่นี่
+    // 2. LIFF ID (ไม่ต้องเปลี่ยน)
     const LIFF_ID = '2011383737-Wc8xUNnu'; 
 
     let userLineUid = '';
@@ -156,14 +241,14 @@
         submitBtn.disabled = true;
         submitBtn.innerText = 'กำลังบันทึกข้อมูล...';
 
-        // รวบรวมข้อมูลจากฟอร์ม
+        // รวบรวมข้อมูลจากฟอร์ม (ส่ง condition เป็น '-' อัตโนมัติเพื่อไม่ให้ Google Sheet ขยับ)
         const formData = {
             action: 'register',
             lineUid: userLineUid,
             empId: document.getElementById('empId').value,
             name: document.getElementById('name').value,
             dept: document.getElementById('dept').value,
-            condition: document.getElementById('condition').value,
+            condition: '-', 
             height: document.getElementById('height').value,
             weight: document.getElementById('weight').value,
             bmi: document.getElementById('bmi').value,
@@ -183,19 +268,19 @@
         .then(response => response.json())
         .then(data => {
             if(data.status === 'success') {
-                alert('ลงทะเบียนสำเร็จ!');
+                alert('ลงทะเบียนสำเร็จ! ยินดีต้อนรับเข้าสู่กิจกรรมครับ');
                 liff.closeWindow(); // ปิดหน้าต่าง LIFF กลับไปที่แชท
             } else {
                 alert('เกิดข้อผิดพลาด: ' + data.message);
                 submitBtn.disabled = false;
-                submitBtn.innerText = 'บันทึกข้อมูล';
+                submitBtn.innerText = 'บันทึกข้อมูลสุขภาพ';
             }
         })
         .catch(error => {
             console.error('Error:', error);
             alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
             submitBtn.disabled = false;
-            submitBtn.innerText = 'บันทึกข้อมูล';
+            submitBtn.innerText = 'บันทึกข้อมูลสุขภาพ';
         });
     });
 </script>
