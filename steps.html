@@ -11,7 +11,8 @@
         .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,185,0,0.1); max-width: 400px; margin: auto; }
         .header { text-align: center; color: #00b900; margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; }
-        input[type="number"], input[type="file"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1.5px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; }
+        /* เพิ่ม input[type="date"] เข้าไปใน style */
+        input[type="date"], input[type="number"], input[type="file"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1.5px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
         button { width: 100%; padding: 15px; background: #00b900; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
         button:disabled { background: #ccc; }
         #preview { max-width: 100%; border-radius: 10px; display: none; margin-bottom: 15px; }
@@ -26,8 +27,9 @@
     </div>
 
     <form id="stepForm">
-        <label>วันที่เดิน</label>
-        <input type="text" id="todayDate" disabled style="width: 100%; padding: 12px; margin-bottom: 15px; border: none; background: #f1f5f9; border-radius: 10px; text-align: center; font-weight: bold;">
+        <label>เลือกวันที่เดิน</label>
+        <!-- เปลี่ยนจาก type="text" ที่โดนล็อค (disabled) เป็น type="date" ที่เลือกได้ -->
+        <input type="date" id="selectedDate" required>
 
         <label>จำนวนก้าวที่เดินได้ (ก้าว)</label>
         <input type="number" id="steps" min="10000" placeholder="ระบุจำนวนก้าว (ขั้นต่ำ 10,000)" required>
@@ -42,14 +44,16 @@
 
 <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhfaDAwqr2vKHbVdJjZHwqH8eKyGdgXwCLdVkZ7qSOwIdm2ExJf-bfETZdtpN2jHEx/exec'; 
-    const LIFF_ID = '2011383737-hxvMTfCW'; // ต้องสร้าง LIFF ใหม่สำหรับหน้านี้
+    const LIFF_ID = '2011383737-hxvMTfCW';
     let userLineUid = '';
     let base64Image = '';
 
-    // สร้างวันที่ปัจจุบัน
+    // ตั้งค่าเริ่มต้นให้ช่องปฏิทินแสดงเป็น "วันนี้"
     const today = new Date();
-    const dateStr = today.getDate().toString().padStart(2, '0') + '/' + (today.getMonth() + 1).toString().padStart(2, '0') + '/' + today.getFullYear();
-    document.getElementById('todayDate').value = dateStr;
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById('selectedDate').value = `${yyyy}-${mm}-${dd}`;
 
     async function initializeLiff() {
         await liff.init({ liffId: LIFF_ID });
@@ -69,13 +73,12 @@
             img.onload = function() {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                const MAX_WIDTH = 800; // ย่อขนาดเพื่อไม่ให้หนักเกินไป
+                const MAX_WIDTH = 800; // ย่อขนาด
                 const scaleSize = MAX_WIDTH / img.width;
                 canvas.width = MAX_WIDTH;
                 canvas.height = img.height * scaleSize;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
-                // แปลงภาพเป็น Base64 แบบตัดส่วนหัวออก
                 base64Image = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
                 
                 const preview = document.getElementById('preview');
@@ -100,6 +103,11 @@
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.innerText = 'กำลังอัปโหลดรูปและส่งข้อมูล...';
+
+        // แปลงวันที่จากระบบ YYYY-MM-DD เป็น DD/MM/YYYY ให้ตรงกับ Google Sheet
+        const rawDate = document.getElementById('selectedDate').value;
+        const dateParts = rawDate.split('-');
+        const dateStr = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
 
         const formData = {
             action: 'log_steps',
