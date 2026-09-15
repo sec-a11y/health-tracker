@@ -151,7 +151,8 @@
                         <div class="rank-badge ${rankClass}">${index + 1}</div>
                         <div>
                             <div class="name">${item.name}</div>
-                            <div class="dept">${item.dept || 'พนักงาน'}</div>
+                            <!-- เพิ่มการแสดงก้าวสะสมใต้ชื่อ -->
+                            <div class="dept">${item.dept || 'พนักงาน'} • <span style="color:#059669; font-weight:600;">👟 ${Number(item.totalSteps).toLocaleString()} ก้าว</span></div>
                         </div>
                     </div>
                     <div class="points">${item.points} 🌟</div>
