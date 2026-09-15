@@ -1,149 +1,43 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>บันทึกก้าวเดินรายวัน</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Sarabun', sans-serif; background: #e0f5e9; padding: 20px; color: #333; }
-        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,185,0,0.1); max-width: 400px; margin: auto; }
-        .header { text-align: center; color: #00b900; margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; }
-        /* เพิ่ม input[type="date"] เข้าไปใน style */
-        input[type="date"], input[type="number"], input[type="file"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1.5px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
-        button { width: 100%; padding: 15px; background: #00b900; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        button:disabled { background: #ccc; }
-        #preview { max-width: 100%; border-radius: 10px; display: none; margin-bottom: 15px; }
-    </style>
-</head>
-<body>
+// 🟢 เพิ่มฟังก์ชันนี้สำหรับดึงวันที่ที่เคยส่งแล้วของพนักงานแต่ละคน
+function doGet(e) {
+  // รองรับส่วนอนุมัติเดิม
+  if (e.parameter.action === 'approve') {
+    return handleApproval(e);
+  }
+  
+  // รองรับการดึงข้อมูลแดชบอร์ดเดิม
+  if (e.parameter.action === 'get_leaderboard') {
+    return handleGetLeaderboard(e);
+  }
 
-<div class="container">
-    <div class="header">
-        <h2>👟 ส่งก้าวเดินประจำวัน</h2>
-        <p>เป้าหมาย: 10,000 ก้าวขึ้นไป = 1 แต้ม</p>
-    </div>
+  // 👇 เพิ่มส่วนนี้: ดึงรายการวันที่ที่เคยส่งแล้วของ User คนนี้
+  if (e.parameter.action === 'get_submitted_dates') {
+    let uid = e.parameter.uid;
+    let sheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let ws = sheet.getSheetByName("Daily_Steps");
+    let data = ws.getDataRange().getValues();
+    let submittedDates = [];
 
-    <form id="stepForm">
-        <label>เลือกวันที่เดิน</label>
-        <!-- เปลี่ยนจาก type="text" ที่โดนล็อค (disabled) เป็น type="date" ที่เลือกได้ -->
-        <input type="date" id="selectedDate" required>
-
-        <label>จำนวนก้าวที่เดินได้ (ก้าว)</label>
-        <input type="number" id="steps" min="10000" placeholder="ระบุจำนวนก้าว (ขั้นต่ำ 10,000)" required>
-
-        <label>อัปโหลดรูปภาพ</label>
-        <input type="file" id="imageFile" accept="image/*" required>
-        <img id="preview" alt="ภาพพรีวิว">
-
-        <button type="submit" id="submitBtn">ส่งข้อมูล</button>
-    </form>
-</div>
-
-<script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhfaDAwqr2vKHbVdJjZHwqH8eKyGdgXwCLdVkZ7qSOwIdm2ExJf-bfETZdtpN2jHEx/exec'; 
-    const LIFF_ID = '2011383737-hxvMTfCW';
-    let userLineUid = '';
-    let base64Image = '';
-
-    // ตั้งค่าเริ่มต้นให้ช่องปฏิทินแสดงเป็น "วันนี้"
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    document.getElementById('selectedDate').value = `${yyyy}-${mm}-${dd}`;
-
-    async function initializeLiff() {
-        await liff.init({ liffId: LIFF_ID });
-        if (liff.isLoggedIn()) { userLineUid = (await liff.getProfile()).userId; }
-        else { liff.login(); }
+    for (let i = 1; i < data.length; i++) {
+      let rowUid = data[i][1];
+      let rowDate = data[i][2]; // รูปแบบในชีต เช่น 15/09/2026 หรือ YYYY-MM-DD
+      let status = data[i][5];  // "รออนุมัติ" หรือ "อนุมัติ"
+      
+      if (rowUid === uid && (status === "รออนุมัติ" || status === "อนุมัติ")) {
+        // แปลงวันที่ในชีตให้เป็นรูปแบบ YYYY-MM-DD เพื่อให้ตรงกับ input type="date"
+        let parts = rowDate.split('/');
+        if (parts.length === 3) {
+          let formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          submittedDates.push(formattedDate);
+        } else {
+          submittedDates.push(rowDate);
+        }
+      }
     }
-    initializeLiff();
 
-    // แสดงภาพพรีวิวและย่อขนาดรูป (Compress)
-    document.getElementById('imageFile').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const MAX_WIDTH = 800; // ย่อขนาด
-                const scaleSize = MAX_WIDTH / img.width;
-                canvas.width = MAX_WIDTH;
-                canvas.height = img.height * scaleSize;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                base64Image = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
-                
-                const preview = document.getElementById('preview');
-                preview.src = canvas.toDataURL('image/jpeg', 0.7);
-                preview.style.display = 'block';
-            }
-            img.src = event.target.result;
-        }
-        reader.readAsDataURL(file);
-    });
-
-    // ส่งข้อมูล
-    document.getElementById('stepForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // 👇 เพิ่มโค้ดเช็ค UID ตรงนี้ 👇
-        if (!userLineUid) {
-            alert('กำลังดึงข้อมูลจาก LINE กรุณารอสักครู่ หรือตรวจสอบว่าคุณเปิดลิงก์ผ่านแอป LINE หรือไม่');
-            return;
-        }
-        // 👆 สิ้นสุดส่วนที่เพิ่ม 👆
-
-        const steps = document.getElementById('steps').value;
-        // ... (โค้ดส่วนที่เหลือเหมือนเดิม) ...
-
-        if (steps < 10000) {
-            alert('ต้องเดินให้ครบ 10,000 ก้าวขึ้นไปนะคะ สู้ๆ!');
-            return;
-        }
-
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        submitBtn.innerText = 'กำลังอัปโหลดรูปและส่งข้อมูล...';
-
-        // แปลงวันที่จากระบบ YYYY-MM-DD เป็น DD/MM/YYYY ให้ตรงกับ Google Sheet
-        const rawDate = document.getElementById('selectedDate').value;
-        const dateParts = rawDate.split('-');
-        const dateStr = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-
-        const formData = {
-            action: 'log_steps',
-            lineUid: userLineUid,
-            date: dateStr,
-            steps: steps,
-            imageBase64: base64Image
-        };
-
-        fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(formData)
-        }).then(res => res.json()).then(data => {
-            if(data.status === 'success') {
-                alert('ส่งข้อมูลสำเร็จ! รอแอดมินตรวจสอบเพื่อรับแต้มค่ะ');
-                liff.closeWindow();
-            } else {
-                alert(data.message);
-                submitBtn.disabled = false;
-                submitBtn.innerText = 'ส่งข้อมูล';
-            }
-        }).catch(err => {
-            alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
-            submitBtn.disabled = false;
-            submitBtn.innerText = 'ส่งข้อมูล';
-        });
-    });
-</script>
-</body>
-</html>
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      submittedDates: submittedDates
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
