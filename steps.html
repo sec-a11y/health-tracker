@@ -26,7 +26,7 @@
         <p>เป้าหมาย: 10,000 ก้าวขึ้นไป = 1 แต้ม</p>
     </div>
 
-    <div id="duplicateAlert" class="alert-box">⚠️ คุณได้ส่งข้อมูลของวันนี้ไปแล้ว ไม่สามารถส่งซ้ำได้ครับ</div>
+    <div id="duplicateAlert" class="alert-box">⚠️ คุณได้ส่งข้อมูลของวันนี้ไปแล้ว ไม่สามารถส่งซ้ำได้ค่ะ</div>
 
     <form id="stepForm">
         <label>เลือกวันที่เดิน</label>
@@ -153,7 +153,7 @@
 
         const rawDate = dateInput.value;
         if (submittedDatesList.includes(rawDate)) {
-            alert('วันที่คุณเลือกเคยถูกส่งข้อมูลไปแล้ว ไม่สามารถส่งซ้ำได้ครับ');
+            alert('วันที่คุณเลือกเคยถูกส่งข้อมูลไปแล้ว ไม่สามารถส่งซ้ำได้ค่ะ');
             return;
         }
 
@@ -178,7 +178,7 @@
             body: JSON.stringify(formData)
         }).then(res => res.json()).then(data => {
             if(data.status === 'success') {
-                alert('ส่งข้อมูลสำเร็จ! รอแอดมินตรวจสอบเพื่อรับแต้มครับ');
+                alert('ส่งข้อมูลสำเร็จ! รอแอดมินตรวจสอบเพื่อรับแต้มค่ะ');
                 liff.closeWindow();
             } else {
                 alert(data.message);
