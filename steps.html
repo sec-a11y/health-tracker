@@ -93,10 +93,23 @@
     // ส่งข้อมูล
     document.getElementById('stepForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        // ส่งข้อมูล
+    document.getElementById('stepForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 👇 เพิ่มโค้ดเช็ค UID ตรงนี้ 👇
+        if (!userLineUid) {
+            alert('กำลังดึงข้อมูลจาก LINE กรุณารอสักครู่ หรือตรวจสอบว่าคุณเปิดลิงก์ผ่านแอป LINE หรือไม่');
+            return;
+        }
+        // 👆 สิ้นสุดส่วนที่เพิ่ม 👆
+
+        const steps = document.getElementById('steps').value;
+        // ... (โค้ดส่วนที่เหลือเหมือนเดิม) ...
         const steps = document.getElementById('steps').value;
 
         if (steps < 10000) {
-            alert('ต้องเดินให้ครบ 10,000 ก้าวขึ้นไปนะครับ สู้ๆ!');
+            alert('ต้องเดินให้ครบ 10,000 ก้าวขึ้นไปนะคะ สู้ๆ!');
             return;
         }
 
@@ -122,7 +135,7 @@
             body: JSON.stringify(formData)
         }).then(res => res.json()).then(data => {
             if(data.status === 'success') {
-                alert('ส่งข้อมูลสำเร็จ! รอแอดมินตรวจสอบเพื่อรับแต้มครับ');
+                alert('ส่งข้อมูลสำเร็จ! รอแอดมินตรวจสอบเพื่อรับแต้มค่ะ');
                 liff.closeWindow();
             } else {
                 alert(data.message);
