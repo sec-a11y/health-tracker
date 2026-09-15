@@ -53,7 +53,7 @@
 
     <!-- ส่วนแสดงคะแนนของฉัน -->
     <div class="my-card">
-        <h3>👤 คะแนนส่วนตัวของคุณ</h3>
+        <h3>👤 คะแนนและสถิติส่วนตัวของคุณ</h3>
         <div id="myStats" class="loading">กำลังโหลดข้อมูลของคุณ...</div>
     </div>
 
@@ -112,7 +112,7 @@
             return;
         }
         myDiv.innerHTML = `
-            <div style="font-weight:600; font-size:16px; color:#1e293b;">${stats.name} <span style="font-size:13px; color:#64748b;">(${stats.dept})</span></div>
+            <div style="font-weight:600; font-size:16px; color:#1e293b; margin-bottom: 12px;">${stats.name} <span style="font-size:13px; color:#64748b;">(${stats.dept})</span></div>
             <div class="stat-grid">
                 <div class="stat-box">
                     <div class="num">${stats.totalPoints}</div>
@@ -122,6 +122,11 @@
                     <div class="num">${stats.totalDays}</div>
                     <div class="label">วันที่ผ่านการอนุมัติ</div>
                 </div>
+            </div>
+            <!-- เพิ่มกล่องแสดงก้าวเดินสะสมรวม -->
+            <div style="margin-top: 12px; background: #ecfdf5; padding: 12px; border-radius: 12px; text-align: center; border: 1px dashed #059669;">
+                <div style="font-size: 20px; font-weight: bold; color: #047857;">👟 ${Number(stats.totalSteps).toLocaleString()} ก้าว</div>
+                <div style="font-size: 13px; color: #065f46; margin-top: 2px;">จำนวนก้าวเดินสะสมทั้งหมด</div>
             </div>
         `;
     }
