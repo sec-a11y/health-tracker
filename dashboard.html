@@ -125,16 +125,23 @@
         }
         myDiv.innerHTML = `
             <div style="font-weight:600; font-size:16px; color:#1e293b; margin-bottom: 12px;">${stats.name} <span style="font-size:13px; color:#64748b;">(${stats.dept})</span></div>
-            <div class="stat-grid">
-                <div class="stat-box">
-                    <div class="num">${stats.totalPoints}</div>
-                    <div class="label">คะแนนสะสม (แต้ม)</div>
+            
+            <!-- ปรับ Grid เป็น 3 ช่อง เพื่อใส่ คะแนน, วันที่อนุมัติแล้ว, และวันที่รออนุมัติ -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px;">
+                <div class="stat-box" style="padding: 10px 4px;">
+                    <div class="num" style="font-size: 20px;">${stats.totalPoints}</div>
+                    <div class="label" style="font-size: 11px;">คะแนน (แต้ม)</div>
                 </div>
-                <div class="stat-box">
-                    <div class="num">${stats.totalDays}</div>
-                    <div class="label">วันที่ผ่านการอนุมัติ</div>
+                <div class="stat-box" style="padding: 10px 4px;">
+                    <div class="num" style="font-size: 20px; color: #0284c7;">${stats.totalDays}</div>
+                    <div class="label" style="font-size: 11px;">อนุมัติแล้ว (วัน)</div>
+                </div>
+                <div class="stat-box" style="padding: 10px 4px; background: #fff7ed;">
+                    <div class="num" style="font-size: 20px; color: #ea580c;">${stats.pendingDays}</div>
+                    <div class="label" style="font-size: 11px; color: #c2410c;">รออนุมัติ (วัน)</div>
                 </div>
             </div>
+
             <div style="margin-top: 12px; background: #ecfdf5; padding: 12px; border-radius: 12px; text-align: center; border: 1px dashed #059669;">
                 <div style="font-size: 20px; font-weight: bold; color: #047857;">👟 ${Number(stats.totalSteps).toLocaleString()} ก้าว</div>
                 <div style="font-size: 13px; color: #065f46; margin-top: 2px;">จำนวนก้าวเดินสะสมทั้งหมด</div>
