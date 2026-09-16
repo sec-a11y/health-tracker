@@ -123,10 +123,13 @@
             myDiv.innerHTML = '<p style="color:red; text-align:center; margin:5px 0;">คุณยังไม่ได้ลงทะเบียน กรุณาลงทะเบียนก่อนร่วมกิจกรรมครับ</p>';
             return;
         }
+        
+        // กำหนดค่าเริ่มต้นเป็น 0 ป้องกันกรณี undefined
+        const pendingCount = stats.pendingDays !== undefined ? stats.pendingDays : 0;
+
         myDiv.innerHTML = `
             <div style="font-weight:600; font-size:16px; color:#1e293b; margin-bottom: 12px;">${stats.name} <span style="font-size:13px; color:#64748b;">(${stats.dept})</span></div>
             
-            <!-- ปรับ Grid เป็น 3 ช่อง เพื่อใส่ คะแนน, วันที่อนุมัติแล้ว, และวันที่รออนุมัติ -->
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px;">
                 <div class="stat-box" style="padding: 10px 4px;">
                     <div class="num" style="font-size: 20px;">${stats.totalPoints}</div>
@@ -137,7 +140,8 @@
                     <div class="label" style="font-size: 11px;">อนุมัติแล้ว (วัน)</div>
                 </div>
                 <div class="stat-box" style="padding: 10px 4px; background: #fff7ed;">
-                    <div class="num" style="font-size: 20px; color: #ea580c;">${stats.pendingDays}</div>
+                    <!-- ป้องกันด้วย || 0 ตรงนี้ -->
+                    <div class="num" style="font-size: 20px; color: #ea580c;">${pendingCount}</div>
                     <div class="label" style="font-size: 11px; color: #c2410c;">รออนุมัติ (วัน)</div>
                 </div>
             </div>
