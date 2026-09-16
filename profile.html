@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียน & บันทึกสุขภาพ - SIW</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background: #e0f5e9; padding: 20px; color: #333; margin: 0; }
+        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,185,0,0.1); max-width: 400px; margin: auto; }
+        .header { text-align: center; color: #00b900; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #1e293b; }
+        input[type="text"], input[type="date"], input[type="number"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1.5px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { width: 100%; padding: 15px; background: #00b900; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:disabled { background: #cbd5e1; cursor: not-allowed; }
+        
+        /* ซ่อนส่วนต่างๆ ไว้ก่อนเพื่อรอโหลด */
+        #registerSection, #healthSection { display: none; }
+        #loadingSection { text-align: center; padding: 40px 0; color: #00b900; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>🩺 ระบบข้อมูลสุขภาพ SIW</h2>
+        <p style="margin-top: 5px; font-size: 14px; color: #64748b;">ดูแลโดย น้องปลอดภัย</p>
+    </div>
+
+    <!-- ส่วนที่ 1: โหลดข้อมูล -->
+    <div id="loadingSection">กำลังตรวจสอบข้อมูลของคุณ...</div>
+
+    <!-- ส่วนที่ 2: ฟอร์มลงทะเบียน (โชว์เฉพาะคนใหม่) -->
+    <div id="registerSection">
+        <h3 style="color: #047857; text-align: center; border-bottom: 2px dashed #a7f3d0; padding-bottom: 10px;">👤 ลงทะเบียนเข้าร่วมกิจกรรม</h3>
+        <form id="registerForm">
+            <label>รหัสพนักงาน</label>
+            <input type="text" id="empId" required placeholder="ระบุรหัสพนักงาน">
+            
+            <label>ชื่อ-นามสกุล</label>
+            <input type="text" id="name" required placeholder="ระบุชื่อ-นามสกุล">
+            
+            <label>แผนก / ฝ่าย</label>
+            <input type="text" id="dept" required placeholder="เช่น SHE, HR, Production">
+            
+            <button type="submit" id="btnRegister">ลงทะเบียน</button>
+        </form>
+    </div>
+
+    <!-- ส่วนที่ 3: ฟอร์มบันทึกสุขภาพ (โชว์เมื่อลงทะเบียนแล้ว) -->
+    <div id="healthSection">
+        <h3 style="color: #047857; text-align: center; border-bottom: 2px dashed #a7f3d0; padding-bottom: 10px;">📊 บันทึก/อัปเดตข้อมูลสุขภาพ</h3>
+        <form id="healthForm">
+            <label>วันที่บันทึกข้อมูล</label>
+            <input type="date" id="measureDate" required>
+
+            <div class="grid-2">
+                <div><label>น้ำหนัก (กก.)</label><input type="number" id="weight" step="0.1" required></div>
+                <div><label>ค่า BMI</label><input type="number" id="bmi" step="0.1" required></div>
+                <div><label>รอบเอว (ซม.)</label><input type="number" id="waist" step="0.1" required></div>
+                <div><label>อัตราเผาผลาญ (BMR)</label><input type="number" id="bmr" required></div>
+                <div><label>ไขมันใต้ผิวหนัง (%)</label><input type="number" id="fatSub" step="0.1"></div>
+                <div><label>ไขมันช่องท้อง</label><input type="number" id="fatVisceral" step="0.1"></div>
+                <div><label>มวลกล้ามเนื้อ (%)</label><input type="number" id="muscle" step="0.1"></div>
+                <div><label>อายุร่างกาย (ปี)</label><input type="number" id="bodyAge"></div>
+            </div>
+
+            <button type="submit" id="btnHealth">บันทึกข้อมูลสุขภาพ</button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    // ⚠️ นำ Web App URL ของ Apps Script มาวางตรงนี้
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhfaDAwqr2vKHbVdJjZHwqH8eKyGdgXwCLdVkZ7qSOwIdm2ExJf-bfETZdtpN2jHEx/exec'; 
+    const LIFF_ID = 'ใส่_LIFF_ID_ของหน้านี้_ที่นี่'; 
+    let userLineUid = '';
+
+    // ตั้งค่าเริ่มต้นให้วันที่เป็นวันนี้
+    const today = new Date();
+    document.getElementById('measureDate').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    async function initializeLiff() {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (liff.isLoggedIn()) { 
+                userLineUid = (await liff.getProfile()).userId; 
+                checkUserStatus(userLineUid); // ตรวจสอบว่าลงทะเบียนหรือยัง
+            } else { 
+                liff.login(); 
+            }
+        } catch (err) {
+            document.getElementById('loadingSection').innerText = "กรุณาเปิดผ่านแอปพลิเคชัน LINE";
+        }
+    }
+    initializeLiff();
+
+    // เช็กสถานะพนักงาน
+    function checkUserStatus(uid) {
+        const payload = { action: 'check_user', lineUid: uid };
+        fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('loadingSection').style.display = 'none';
+                if (data.status === 'success' && data.isRegistered) {
+                    // ถ้าเคยลงทะเบียนแล้ว ให้โชว์หน้าบันทึกสุขภาพเลย
+                    document.getElementById('healthSection').style.display = 'block';
+                } else {
+                    // ถ้ายังไม่เคยลงทะเบียน ให้โชว์หน้าลงทะเบียน
+                    document.getElementById('registerSection').style.display = 'block';
+                }
+            })
+            .catch(err => { document.getElementById('loadingSection').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ"; });
+    }
+
+    // เมื่อกดปุ่ม "ลงทะเบียน"
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnRegister');
+        btn.disabled = true; btn.innerText = 'กำลังลงทะเบียน...';
+
+        const payload = {
+            action: 'register',
+            lineUid: userLineUid,
+            empId: document.getElementById('empId').value,
+            name: document.getElementById('name').value,
+            dept: document.getElementById('dept').value
+        };
+
+        fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('ลงทะเบียนสำเร็จ! กรุณาบันทึกข้อมูลสุขภาพเริ่มต้นครับ');
+                    // สลับหน้าจอไปที่ฟอร์มบันทึกสุขภาพ
+                    document.getElementById('registerSection').style.display = 'none';
+                    document.getElementById('healthSection').style.display = 'block';
+                } else {
+                    alert('เกิดข้อผิดพลาด: ' + data.message);
+                    btn.disabled = false; btn.innerText = 'ลงทะเบียน';
+                }
+            });
+    });
+
+    // เมื่อกดปุ่ม "บันทึกข้อมูลสุขภาพ"
+    document.getElementById('healthForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnHealth');
+        btn.disabled = true; btn.innerText = 'กำลังบันทึกข้อมูล...';
+
+        const rawDate = document.getElementById('measureDate').value;
+        const dateParts = rawDate.split('-');
+        const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+
+        const payload = {
+            action: 'update_health',
+            lineUid: userLineUid,
+            date: formattedDate,
+            weight: document.getElementById('weight').value,
+            bmi: document.getElementById('bmi').value,
+            waist: document.getElementById('waist').value,
+            bmr: document.getElementById('bmr').value,
+            fatSub: document.getElementById('fatSub').value || '',
+            fatVisceral: document.getElementById('fatVisceral').value || '',
+            muscle: document.getElementById('muscle').value || '',
+            bodyAge: document.getElementById('bodyAge').value || ''
+        };
+
+        fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('บันทึกข้อมูลสุขภาพเรียบร้อยแล้ว!');
+                    liff.closeWindow(); // ปิดหน้าต่าง LINE ทันที
+                } else {
+                    alert('เกิดข้อผิดพลาด: ' + data.message);
+                    btn.disabled = false; btn.innerText = 'บันทึกข้อมูลสุขภาพ';
+                }
+            });
+    });
+</script>
+</body>
+</html>
