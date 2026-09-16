@@ -3,59 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ลงทะเบียน & บันทึกสุขภาพ - SIW</title>
+    <title>โปรไฟล์สุขภาพ - SIW Health Care</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Sarabun', sans-serif; background: #e0f5e9; padding: 20px; color: #333; margin: 0; }
-        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,185,0,0.1); max-width: 400px; margin: auto; }
+        body { font-family: 'Sarabun', sans-serif; background: #e0f5e9; padding: 15px; color: #333; margin: 0; }
+        .container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,185,0,0.1); max-width: 480px; margin: auto; }
         .header { text-align: center; color: #00b900; margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #1e293b; }
-        input[type="text"], input[type="date"], input[type="number"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1.5px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #1e293b; }
+        input[type="text"], input[type="date"], input[type="number"] { width: 100%; padding: 10px; margin-bottom: 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { width: 100%; padding: 15px; background: #00b900; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:disabled { background: #cbd5e1; cursor: not-allowed; }
         
-        /* ซ่อนส่วนต่างๆ ไว้ก่อนเพื่อรอโหลด */
-        #registerSection, #healthSection { display: none; }
-        #loadingSection { text-align: center; padding: 40px 0; color: #00b900; font-weight: bold; }
+        .btn-primary { width: 100%; padding: 12px; background: #00b900; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-secondary { width: 100%; padding: 12px; background: #f1f5f9; color: #334155; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+        
+        #loadingSection, #registerSection, #healthSection, #dashboardSection { display: none; }
+        
+        /* สไตล์หน้าแดชบอร์ด */
+        .status-box { padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 10px; font-weight: bold; color: white; }
+        .bg-green { background: #10b981; } .bg-orange { background: #f59e0b; } .bg-red { background: #ef4444; }
+        .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; text-align: center; }
+        .stat-card .value { font-size: 22px; font-weight: bold; color: #0f172a; }
+        .stat-card .title { font-size: 12px; color: #64748b; }
+        .chart-container { position: relative; height: 200px; width: 100%; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h2>🩺 ระบบข้อมูลสุขภาพ SIW</h2>
-        <p style="margin-top: 5px; font-size: 14px; color: #64748b;">ดูแลโดย น้องปลอดภัย</p>
+        <h2 style="margin:0;">🩺 ระบบข้อมูลสุขภาพ SIW</h2>
+        <p style="margin-top: 5px; font-size: 14px; color: #64748b; margin-bottom:0;">ดูแลโดย SIW HEALTHCARE TEAM</p>
     </div>
 
-    <!-- ส่วนที่ 1: โหลดข้อมูล -->
-    <div id="loadingSection">กำลังตรวจสอบข้อมูลของคุณ...</div>
+    <!-- 1. โหลดข้อมูล -->
+    <div id="loadingSection" style="text-align: center; padding: 40px 0; color: #00b900; font-weight: bold;">
+        กำลังตรวจสอบข้อมูลของคุณ...
+    </div>
 
-    <!-- ส่วนที่ 2: ฟอร์มลงทะเบียน (โชว์เฉพาะคนใหม่) -->
+    <!-- 2. ฟอร์มลงทะเบียน -->
     <div id="registerSection">
-        <h3 style="color: #047857; text-align: center; border-bottom: 2px dashed #a7f3d0; padding-bottom: 10px;">👤 ลงทะเบียนเข้าร่วมกิจกรรม</h3>
+        <h3 style="color: #047857; text-align: center; border-bottom: 2px dashed #a7f3d0; padding-bottom: 10px;">👤 ลงทะเบียนเข้าสู่ระบบ</h3>
         <form id="registerForm">
-            <label>รหัสพนักงาน</label>
-            <input type="text" id="empId" required placeholder="ระบุรหัสพนักงาน">
-            
-            <label>ชื่อ-นามสกุล</label>
-            <input type="text" id="name" required placeholder="ระบุชื่อ-นามสกุล">
-            
-            <label>แผนก / ฝ่าย</label>
-            <input type="text" id="dept" required placeholder="เช่น SHE, HR, Production">
-            
-            <button type="submit" id="btnRegister">ลงทะเบียน</button>
+            <label>รหัสพนักงาน</label><input type="text" id="empId" required>
+            <label>ชื่อ-นามสกุล</label><input type="text" id="name" required>
+            <label>แผนก / ฝ่าย</label><input type="text" id="dept" required>
+            <button type="submit" id="btnRegister" class="btn-primary">ลงทะเบียน</button>
         </form>
     </div>
 
-    <!-- ส่วนที่ 3: ฟอร์มบันทึกสุขภาพ (โชว์เมื่อลงทะเบียนแล้ว) -->
-    <div id="healthSection">
-        <h3 style="color: #047857; text-align: center; border-bottom: 2px dashed #a7f3d0; padding-bottom: 10px;">📊 บันทึก/อัปเดตข้อมูลสุขภาพ</h3>
-        <form id="healthForm">
-            <label>วันที่บันทึกข้อมูล</label>
-            <input type="date" id="measureDate" required>
+    <!-- 3. แดชบอร์ดกราฟแนวโน้มสุขภาพ -->
+    <div id="dashboardSection">
+        <div id="userGreeting" style="font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 15px; text-align: center;"></div>
+        
+        <div id="latestStatus" class="status-box bg-green">สถานะปัจจุบัน: ปกติ</div>
+        
+        <div class="grid-2" id="latestMetrics">
+            <div class="stat-card"><div class="title">น้ำหนักล่าสุด</div><div class="value" id="dashWeight">-</div></div>
+            <div class="stat-card"><div class="title">BMI ล่าสุด</div><div class="value" id="dashBmi">-</div></div>
+        </div>
 
+        <div style="margin-top: 20px;">
+            <h4 style="margin-bottom: 5px; color: #334155;">📈 แนวโน้มน้ำหนัก และ BMI</h4>
+            <div class="chart-container"><canvas id="trendChart"></canvas></div>
+        </div>
+
+        <button class="btn-primary" onclick="showHealthForm()">➕ บันทึกข้อมูลสุขภาพใหม่</button>
+    </div>
+
+    <!-- 4. ฟอร์มบันทึกสุขภาพ -->
+    <div id="healthSection">
+        <h3 style="color: #047857; text-align: center; border-bottom: 2px dashed #a7f3d0; padding-bottom: 10px;">📊 บันทึกข้อมูลสุขภาพ</h3>
+        <form id="healthForm">
+            <label>วันที่บันทึกข้อมูล</label><input type="date" id="measureDate" required>
             <div class="grid-2">
                 <div><label>น้ำหนัก (กก.)</label><input type="number" id="weight" step="0.1" required></div>
                 <div><label>ค่า BMI</label><input type="number" id="bmi" step="0.1" required></div>
@@ -66,20 +88,20 @@
                 <div><label>มวลกล้ามเนื้อ (%)</label><input type="number" id="muscle" step="0.1"></div>
                 <div><label>อายุร่างกาย (ปี)</label><input type="number" id="bodyAge"></div>
             </div>
-
-            <button type="submit" id="btnHealth">บันทึกข้อมูลสุขภาพ</button>
+            <button type="submit" id="btnHealth" class="btn-primary">บันทึกข้อมูล</button>
+            <button type="button" class="btn-secondary" id="btnBackToDash" onclick="showDashboard()" style="display:none;">⬅️ กลับไปหน้าแดชบอร์ด</button>
         </form>
     </div>
-
 </div>
 
 <script>
-    // ⚠️ นำ Web App URL ของ Apps Script มาวางตรงนี้
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhfaDAwqr2vKHbVdJjZHwqH8eKyGdgXwCLdVkZ7qSOwIdm2ExJf-bfETZdtpN2jHEx/exec'; 
     const LIFF_ID = '2011383737-Wc8xUNnu'; 
     let userLineUid = '';
+    let healthChart = null;
 
-    // ตั้งค่าเริ่มต้นให้วันที่เป็นวันนี้
+    document.getElementById('loadingSection').style.display = 'block';
+
     const today = new Date();
     document.getElementById('measureDate').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
@@ -88,43 +110,106 @@
             await liff.init({ liffId: LIFF_ID });
             if (liff.isLoggedIn()) { 
                 userLineUid = (await liff.getProfile()).userId; 
-                checkUserStatus(userLineUid); // ตรวจสอบว่าลงทะเบียนหรือยัง
-            } else { 
-                liff.login(); 
-            }
-        } catch (err) {
-            document.getElementById('loadingSection').innerText = "กรุณาเปิดผ่านแอปพลิเคชัน LINE";
-        }
+                checkUserStatus(userLineUid);
+            } else { liff.login(); }
+        } catch (err) { document.getElementById('loadingSection').innerText = "กรุณาเปิดผ่านแอปพลิเคชัน LINE"; }
     }
     initializeLiff();
 
-    // เช็กสถานะพนักงาน
     function checkUserStatus(uid) {
-        const payload = { action: 'check_user', lineUid: uid };
-        fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
+        fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'check_user', lineUid: uid }) })
             .then(res => res.json())
             .then(data => {
                 document.getElementById('loadingSection').style.display = 'none';
                 if (data.status === 'success' && data.isRegistered) {
-                    // ถ้าเคยลงทะเบียนแล้ว ให้โชว์หน้าบันทึกสุขภาพเลย
-                    document.getElementById('healthSection').style.display = 'block';
+                    if (data.healthHistory && data.healthHistory.length > 0) {
+                        renderDashboard(data.userData, data.healthHistory);
+                    } else {
+                        // ลงทะเบียนแล้ว แต่ยังไม่มีประวัติ ให้โชว์ฟอร์มกรอกสุขภาพ
+                        document.getElementById('healthSection').style.display = 'block';
+                    }
                 } else {
-                    // ถ้ายังไม่เคยลงทะเบียน ให้โชว์หน้าลงทะเบียน
                     document.getElementById('registerSection').style.display = 'block';
                 }
             })
             .catch(err => { document.getElementById('loadingSection').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ"; });
     }
 
-    // เมื่อกดปุ่ม "ลงทะเบียน"
+    function renderDashboard(user, history) {
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('healthSection').style.display = 'none';
+        document.getElementById('registerSection').style.display = 'none';
+        document.getElementById('btnBackToDash').style.display = 'block'; // เปิดปุ่มย้อนกลับให้ฟอร์ม
+
+        document.getElementById('userGreeting').innerText = `สวัสดีคุณ ${user.name} (${user.dept})`;
+
+        // ดึงข้อมูลล่าสุด
+        const latest = history[history.length - 1];
+        document.getElementById('dashWeight').innerText = latest.weight ? `${latest.weight} กก.` : '-';
+        document.getElementById('dashBmi').innerText = latest.bmi || '-';
+
+        // ประเมินสีตามค่า BMI (เอเชีย)
+        const bmi = Number(latest.bmi);
+        const statusBox = document.getElementById('latestStatus');
+        if (bmi < 18.5) {
+            statusBox.className = 'status-box bg-orange';
+            statusBox.innerText = '⚠️ สถานะ: น้ำหนักน้อยกว่าเกณฑ์';
+        } else if (bmi >= 18.5 && bmi < 23) {
+            statusBox.className = 'status-box bg-green';
+            statusBox.innerText = '✅ สถานะ: ปกติสุขภาวะดี';
+        } else if (bmi >= 23 && bmi < 25) {
+            statusBox.className = 'status-box bg-orange';
+            statusBox.innerText = '⚠️ สถานะ: ท้วม / เสี่ยงอ้วน';
+        } else {
+            statusBox.className = 'status-box bg-red';
+            statusBox.innerText = '🚨 สถานะ: อ้วน (ควรดูแลสุขภาพ)';
+        }
+
+        // วาดกราฟ
+        const labels = history.map(h => h.date);
+        const weights = history.map(h => h.weight);
+        const bmis = history.map(h => h.bmi);
+
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        if (healthChart) healthChart.destroy(); // ลบกราฟเก่าถ้ามี
+
+        healthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'น้ำหนัก (กก.)', data: weights, borderColor: '#3b82f6', backgroundColor: '#3b82f6', yAxisID: 'y' },
+                    { label: 'BMI', data: bmis, borderColor: '#f59e0b', backgroundColor: '#f59e0b', yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'น้ำหนัก' } },
+                    y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'BMI' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    function showHealthForm() {
+        document.getElementById('dashboardSection').style.display = 'none';
+        document.getElementById('healthSection').style.display = 'block';
+    }
+
+    function showDashboard() {
+        document.getElementById('healthSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+    }
+
+    // เมื่อกดปุ่มลงทะเบียน
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const btn = document.getElementById('btnRegister');
         btn.disabled = true; btn.innerText = 'กำลังลงทะเบียน...';
 
         const payload = {
-            action: 'register',
-            lineUid: userLineUid,
+            action: 'register', lineUid: userLineUid,
             empId: document.getElementById('empId').value,
             name: document.getElementById('name').value,
             dept: document.getElementById('dept').value
@@ -135,17 +220,16 @@
             .then(data => {
                 if (data.status === 'success') {
                     alert('ลงทะเบียนสำเร็จ! กรุณาบันทึกข้อมูลสุขภาพเริ่มต้นครับ');
-                    // สลับหน้าจอไปที่ฟอร์มบันทึกสุขภาพ
                     document.getElementById('registerSection').style.display = 'none';
                     document.getElementById('healthSection').style.display = 'block';
                 } else {
-                    alert('เกิดข้อผิดพลาด: ' + data.message);
+                    alert('ข้อผิดพลาด: ' + data.message);
                     btn.disabled = false; btn.innerText = 'ลงทะเบียน';
                 }
             });
     });
 
-    // เมื่อกดปุ่ม "บันทึกข้อมูลสุขภาพ"
+    // เมื่อกดปุ่มบันทึกสุขภาพ
     document.getElementById('healthForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const btn = document.getElementById('btnHealth');
@@ -153,12 +237,9 @@
 
         const rawDate = document.getElementById('measureDate').value;
         const dateParts = rawDate.split('-');
-        const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-
         const payload = {
-            action: 'update_health',
-            lineUid: userLineUid,
-            date: formattedDate,
+            action: 'update_health', lineUid: userLineUid,
+            date: `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`,
             weight: document.getElementById('weight').value,
             bmi: document.getElementById('bmi').value,
             waist: document.getElementById('waist').value,
@@ -174,10 +255,10 @@
             .then(data => {
                 if (data.status === 'success') {
                     alert('บันทึกข้อมูลสุขภาพเรียบร้อยแล้ว!');
-                    liff.closeWindow(); // ปิดหน้าต่าง LINE ทันที
+                    liff.closeWindow(); 
                 } else {
-                    alert('เกิดข้อผิดพลาด: ' + data.message);
-                    btn.disabled = false; btn.innerText = 'บันทึกข้อมูลสุขภาพ';
+                    alert('ข้อผิดพลาด: ' + data.message);
+                    btn.disabled = false; btn.innerText = 'บันทึกข้อมูล';
                 }
             });
     });
