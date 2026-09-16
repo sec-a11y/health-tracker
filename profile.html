@@ -118,21 +118,26 @@
 
     function checkUserStatus(uid) {
         fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'check_user', lineUid: uid }) })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error("Google ปฏิเสธการเชื่อมต่อ (อาจจะลืมตั้งค่าสิทธิ์ Anyone หรือลิงก์ผิด)");
+                return res.json();
+            })
             .then(data => {
                 document.getElementById('loadingSection').style.display = 'none';
                 if (data.status === 'success' && data.isRegistered) {
                     if (data.healthHistory && data.healthHistory.length > 0) {
                         renderDashboard(data.userData, data.healthHistory);
                     } else {
-                        // ลงทะเบียนแล้ว แต่ยังไม่มีประวัติ ให้โชว์ฟอร์มกรอกสุขภาพ
                         document.getElementById('healthSection').style.display = 'block';
                     }
                 } else {
                     document.getElementById('registerSection').style.display = 'block';
                 }
             })
-            .catch(err => { document.getElementById('loadingSection').innerHTML = "<span style='color:red;'><b>Error:</b> " + err.message + "</span>"; });
+            .catch(err => { 
+                // เปลี่ยนข้อความให้แสดง Error สีแดงชัดเจน
+                document.getElementById('loadingSection').innerHTML = `<div style="color:#ef4444; background:#fee2e2; padding:15px; border-radius:10px; font-size:14px; text-align:left; border: 1px solid #f87171;"><b>🚨 พบปัญหาการเชื่อมต่อ:</b><br>${err.message}<br><br><b>วิธีเช็ก:</b><br>1. URL ในโค้ดตรงกับ Web App หรือไม่<br>2. ตอน Deploy เลือก 'Anyone' (ทุกคน) หรือยัง</div>`; 
+            });
     }
 
     function renderDashboard(user, history) {
