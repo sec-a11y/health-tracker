@@ -132,7 +132,7 @@
                     document.getElementById('registerSection').style.display = 'block';
                 }
             })
-            .catch(err => { document.getElementById('loadingSection').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ"; });
+            .catch(err => { document.getElementById('loadingSection').innerHTML = "<span style='color:red;'><b>Error:</b> " + err.message + "</span>"; });
     }
 
     function renderDashboard(user, history) {
