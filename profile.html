@@ -240,7 +240,7 @@
         });
     });
 
-    // บันทึกสุขภาพ (อัปเดตการหน่วงเวลาป้องกัน Error)
+    // บันทึกสุขภาพ (ล้างฟอร์มอย่างเดียว ไม่เด้งกลับอัตโนมัติ)
     document.getElementById('healthForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const btn = document.getElementById('btnHealth'); 
@@ -264,21 +264,15 @@
             if (data.status === 'success') { 
                 alert('บันทึกข้อมูลสุขภาพเรียบร้อยแล้ว!');
                 
-                // ล้างฟอร์ม
+                // 1. ล้างข้อมูลในช่องกรอกทั้งหมด
                 document.getElementById('healthForm').reset();
+                
+                // 2. เซ็ตวันที่กลับมาเป็นวันปัจจุบัน (ป้องกันช่องวันที่ว่างเปล่า)
                 dateInput.value = todayStr;
                 
-                // เปลี่ยนหน้าจอเป็นสถานะกำลังโหลด
-                document.getElementById('healthSection').style.display = 'none';
-                document.getElementById('loadingSection').style.display = 'block';
-                document.getElementById('loadingSection').innerText = 'กำลังอัปเดตกราฟสถิติ...';
-
-                // หน่วงเวลา 2 วินาที เพื่อรอ Google Sheets เขียนข้อมูลให้เสร็จ แล้วค่อยรีเฟรชหน้า
-                setTimeout(() => {
-                    checkUserStatus(userLineUid);
-                    btn.disabled = false; 
-                    btn.innerText = 'บันทึกข้อมูล';
-                }, 2000);
+                // 3. คืนสถานะปุ่มกลับมาเป็นปกติ (และให้อยู่ที่หน้าเดิมต่อไป)
+                btn.disabled = false; 
+                btn.innerText = 'บันทึกข้อมูล';
 
             } else { 
                 alert('ข้อผิดพลาด: ' + data.message); 
