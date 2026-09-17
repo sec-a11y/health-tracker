@@ -17,6 +17,7 @@
         
         .btn-primary { width: 100%; padding: 12px; background: #00b900; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-secondary { width: 100%; padding: 12px; background: #f1f5f9; color: #334155; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
         
         #loadingSection, #registerSection, #healthSection, #dashboardSection { display: none; }
         
@@ -104,17 +105,21 @@
 
 <script>
     // 🚨 อย่าลืมเปลี่ยน URL และ LIFF ID ด้านล่างนี้นะครับ!
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhfaDAwqr2vKHbVdJjZHwqH8eKyGdgXwCLdVkZ7qSOwIdm2ExJf-bfETZdtpN2jHEx/exec'; 
-    const LIFF_ID = '2011383737-Wc8xUNnu'; 
+    const APPS_SCRIPT_URL = 'ใส่_URL_ของคุณตรงนี้'; 
+    const LIFF_ID = 'ใส่_LIFF_ID_ของคุณตรงนี้'; 
     
     let userLineUid = '';
     let healthChart = null;
-    let globalHistory = []; // ตัวแปรเก็บประวัติไว้ใช้ตอนเปลี่ยนกราฟ
+    let globalHistory = [];
+
+    // เซ็ตค่าวันที่เริ่มต้นให้เป็นวันนี้ และล็อกไม่ให้กรอกวันล่วงหน้า
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const dateInput = document.getElementById('measureDate');
+    dateInput.value = todayStr;
+    dateInput.max = todayStr;
 
     document.getElementById('loadingSection').style.display = 'block';
-
-    const today = new Date();
-    document.getElementById('measureDate').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     async function initializeLiff() {
         try {
@@ -143,15 +148,18 @@
                     document.getElementById('registerSection').style.display = 'block';
                 }
             })
-            .catch(err => { document.getElementById('loadingSection').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ"; });
+            .catch(err => { document.getElementById('loadingSection').innerHTML = "<span style='color:red;'>เกิดข้อผิดพลาดในการเชื่อมต่อ</span>"; });
     }
 
+    // ฟังก์ชันวาดแดชบอร์ด (เพิ่มระบบป้องกันข้อมูลว่าง)
     function renderDashboard(user, history) {
         document.getElementById('dashboardSection').style.display = 'block';
         document.getElementById('healthSection').style.display = 'none';
         document.getElementById('btnBackToDash').style.display = 'block';
 
         document.getElementById('userGreeting').innerText = `สวัสดีคุณ ${user.name} (${user.dept})`;
+
+        if (!history || history.length === 0) return; // ป้องกันกราฟพังถ้าไม่มีประวัติ
 
         const latest = history[history.length - 1];
         document.getElementById('dashWeight').innerText = latest.weight ? `${latest.weight} กก.` : '-';
@@ -164,10 +172,9 @@
         else if (bmi >= 23 && bmi < 25) { statusBox.className = 'status-box bg-orange'; statusBox.innerText = '⚠️ สถานะ: ท้วม / เสี่ยงอ้วน'; } 
         else { statusBox.className = 'status-box bg-red'; statusBox.innerText = '🚨 สถานะ: อ้วน (ควรดูแลสุขภาพ)'; }
 
-        updateChart(); // สั่งวาดกราฟครั้งแรก
+        updateChart();
     }
 
-    // ฟังก์ชันวาดกราฟตามที่เลือกใน Dropdown
     function updateChart() {
         if (!globalHistory || globalHistory.length === 0) return;
         
@@ -175,7 +182,6 @@
         const labels = globalHistory.map(h => h.date);
         const dataPoints = globalHistory.map(h => h[selectedMetric]);
 
-        // ตั้งค่าสีและชื่อกราฟแต่ละประเภท
         const configMap = {
             weight: { label: 'น้ำหนัก (กก.)', color: '#3b82f6' },
             bmi: { label: 'BMI', color: '#f59e0b' },
@@ -199,25 +205,21 @@
                     label: config.label,
                     data: dataPoints,
                     borderColor: config.color,
-                    backgroundColor: config.color + '33', // สีโปร่งแสงใต้เส้นกราฟ
+                    backgroundColor: config.color + '33',
                     borderWidth: 3,
                     pointBackgroundColor: '#fff',
                     pointBorderColor: config.color,
                     pointBorderWidth: 2,
                     pointRadius: 4,
                     fill: true,
-                    tension: 0.3 // ทำให้เส้นโค้งสมูท
+                    tension: 0.3 
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { 
-                        display: true, 
-                        title: { display: true, text: config.label, font: { family: 'Sarabun' } },
-                        grid: { color: '#f1f5f9' }
-                    },
+                    y: { display: true, title: { display: true, text: config.label, font: { family: 'Sarabun' } }, grid: { color: '#f1f5f9' } },
                     x: { grid: { display: false }, ticks: { font: { family: 'Sarabun' } } }
                 }
             }
@@ -238,60 +240,56 @@
         });
     });
 
-    // บันทึกสุขภาพ
+    // บันทึกสุขภาพ (อัปเดตการหน่วงเวลาป้องกัน Error)
     document.getElementById('healthForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const btn = document.getElementById('btnHealth'); 
         btn.disabled = true; 
-        btn.innerText = 'กำลังบันทึก...';
+        btn.innerText = 'กำลังบันทึกข้อมูล...';
 
         const rawDate = document.getElementById('measureDate').value;
         const dateParts = rawDate.split('-');
         const payload = {
-            action: 'update_health', 
-            lineUid: userLineUid, 
+            action: 'update_health', lineUid: userLineUid, 
             date: `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`,
-            weight: document.getElementById('weight').value, 
-            bmi: document.getElementById('bmi').value,
-            waist: document.getElementById('waist').value, 
-            bmr: document.getElementById('bmr').value,
-            fatSub: document.getElementById('fatSub').value || '', 
-            fatVisceral: document.getElementById('fatVisceral').value || '',
-            muscle: document.getElementById('muscle').value || '', 
-            bodyAge: document.getElementById('bodyAge').value || ''
+            weight: document.getElementById('weight').value, bmi: document.getElementById('bmi').value,
+            waist: document.getElementById('waist').value, bmr: document.getElementById('bmr').value,
+            fatSub: document.getElementById('fatSub').value || '', fatVisceral: document.getElementById('fatVisceral').value || '',
+            muscle: document.getElementById('muscle').value || '', bodyAge: document.getElementById('bodyAge').value || ''
         };
 
         fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') { 
-                alert('บันทึกข้อมูลสุขภาพเรียบร้อยแล้ว!'); 
+                alert('บันทึกข้อมูลสุขภาพเรียบร้อยแล้ว!');
                 
-                // ล้างค่าในฟอร์มออกให้พร้อมสำหรับการกรอกครั้งต่อไป
+                // ล้างฟอร์ม
                 document.getElementById('healthForm').reset();
-                dateInput.value = todayStr; // เซ็ตวันที่กลับเป็นวันนี้
+                dateInput.value = todayStr;
                 
-                // ซ่อนฟอร์มและโชว์หน้าโหลด
+                // เปลี่ยนหน้าจอเป็นสถานะกำลังโหลด
                 document.getElementById('healthSection').style.display = 'none';
                 document.getElementById('loadingSection').style.display = 'block';
-                
-                // คืนสถานะปุ่ม
-                btn.disabled = false; 
-                btn.innerText = 'บันทึกข้อมูล';
+                document.getElementById('loadingSection').innerText = 'กำลังอัปเดตกราฟสถิติ...';
 
-                // โหลดประวัติใหม่มาวาดกราฟ และเด้งกลับไปหน้าแดชบอร์ดอัตโนมัติ
-                checkUserStatus(userLineUid);
-            } 
-            else { 
+                // หน่วงเวลา 2 วินาที เพื่อรอ Google Sheets เขียนข้อมูลให้เสร็จ แล้วค่อยรีเฟรชหน้า
+                setTimeout(() => {
+                    checkUserStatus(userLineUid);
+                    btn.disabled = false; 
+                    btn.innerText = 'บันทึกข้อมูล';
+                }, 2000);
+
+            } else { 
                 alert('ข้อผิดพลาด: ' + data.message); 
                 btn.disabled = false; 
                 btn.innerText = 'บันทึกข้อมูล'; 
             }
         })
         .catch(err => {
-            alert('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่');
+            alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
             btn.disabled = false; 
-            btn.innerText = 'บันทึกข้อมูล';
+            btn.innerText = 'บันทึกข้อมูล'; 
         });
     });
 </script>
