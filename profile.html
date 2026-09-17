@@ -12,22 +12,20 @@
         .container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,185,0,0.1); max-width: 480px; margin: auto; }
         .header { text-align: center; color: #00b900; margin-bottom: 20px; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #1e293b; }
-        input[type="text"], input[type="date"], input[type="number"] { width: 100%; padding: 10px; margin-bottom: 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+        input[type="text"], input[type="date"], input[type="number"], select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
         .btn-primary { width: 100%; padding: 12px; background: #00b900; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-secondary { width: 100%; padding: 12px; background: #f1f5f9; color: #334155; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
         
         #loadingSection, #registerSection, #healthSection, #dashboardSection { display: none; }
         
-        /* สไตล์หน้าแดชบอร์ด */
-        .status-box { padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 10px; font-weight: bold; color: white; }
+        .status-box { padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; font-weight: bold; color: white; }
         .bg-green { background: #10b981; } .bg-orange { background: #f59e0b; } .bg-red { background: #ef4444; }
         .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; text-align: center; }
         .stat-card .value { font-size: 22px; font-weight: bold; color: #0f172a; }
         .stat-card .title { font-size: 12px; color: #64748b; }
-        .chart-container { position: relative; height: 200px; width: 100%; margin-top: 15px; }
+        .chart-container { position: relative; height: 220px; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -38,12 +36,12 @@
         <p style="margin-top: 5px; font-size: 14px; color: #64748b; margin-bottom:0;">ดูแลโดย SIW HEALTHCARE TEAM</p>
     </div>
 
-    <!-- 1. โหลดข้อมูล -->
+    <!-- โหลดข้อมูล -->
     <div id="loadingSection" style="text-align: center; padding: 40px 0; color: #00b900; font-weight: bold;">
         กำลังตรวจสอบข้อมูลของคุณ...
     </div>
 
-    <!-- 2. ฟอร์มลงทะเบียน -->
+    <!-- ลงทะเบียน -->
     <div id="registerSection">
         <h3 style="color: #047857; text-align: center; border-bottom: 2px dashed #a7f3d0; padding-bottom: 10px;">👤 ลงทะเบียนเข้าสู่ระบบ</h3>
         <form id="registerForm">
@@ -54,10 +52,9 @@
         </form>
     </div>
 
-    <!-- 3. แดชบอร์ดกราฟแนวโน้มสุขภาพ -->
+    <!-- แดชบอร์ด -->
     <div id="dashboardSection">
         <div id="userGreeting" style="font-size: 16px; font-weight: bold; color: #1e293b; margin-bottom: 15px; text-align: center;"></div>
-        
         <div id="latestStatus" class="status-box bg-green">สถานะปัจจุบัน: ปกติ</div>
         
         <div class="grid-2" id="latestMetrics">
@@ -65,17 +62,28 @@
             <div class="stat-card"><div class="title">BMI ล่าสุด</div><div class="value" id="dashBmi">-</div></div>
         </div>
 
-        <div style="margin-top: 20px;">
-            <h4 style="margin-bottom: 5px; color: #334155;">📈 แนวโน้มน้ำหนัก และ BMI</h4>
+        <div style="margin-top: 25px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;">
+            <label style="color: #334155; margin-bottom: 5px;">📊 เลือกดูกราฟแนวโน้ม:</label>
+            <!-- Dropdown เลือกกราฟที่ต้องการ -->
+            <select id="chartSelector" onchange="updateChart()">
+                <option value="weight">น้ำหนัก (กก.)</option>
+                <option value="bmi">ค่า BMI</option>
+                <option value="fatSub">% ไขมันใต้ชั้นผิวหนัง</option>
+                <option value="fatVisceral">ระดับไขมันช่องท้อง</option>
+                <option value="muscle">% กล้ามเนื้อโครงร่าง</option>
+                <option value="bodyAge">อายุร่างกาย (ปี)</option>
+                <option value="bmr">อัตราการเผาผลาญ (BMR)</option>
+                <option value="waist">รอบเอว (นิ้ว)</option>
+            </select>
             <div class="chart-container"><canvas id="trendChart"></canvas></div>
         </div>
 
-        <button class="btn-primary" onclick="showHealthForm()">➕ บันทึกข้อมูลสุขภาพใหม่</button>
+        <button class="btn-primary" onclick="showHealthForm()" style="margin-top: 20px;">➕ บันทึกข้อมูลสุขภาพใหม่</button>
     </div>
 
-    <!-- 4. ฟอร์มบันทึกสุขภาพ -->
+    <!-- ฟอร์มบันทึกสุขภาพ -->
     <div id="healthSection">
-        <h3 style="color: #047857; text-align: center; border-bottom: 2px dashed #a7f3d0; padding-bottom: 10px;">📊 บันทึกข้อมูลสุขภาพ</h3>
+        <h3 style="color: #047857; text-align: center; border-bottom: 2px dashed #a7f3d0; padding-bottom: 10px;">📝 บันทึกข้อมูลสุขภาพ</h3>
         <form id="healthForm">
             <label>วันที่บันทึกข้อมูล</label><input type="date" id="measureDate" required>
             <div class="grid-2">
@@ -95,10 +103,13 @@
 </div>
 
 <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhfaDAwqr2vKHbVdJjZHwqH8eKyGdgXwCLdVkZ7qSOwIdm2ExJf-bfETZdtpN2jHEx/exec'; 
-    const LIFF_ID = '2011383737-Wc8xUNnu'; 
+    // 🚨 อย่าลืมเปลี่ยน URL และ LIFF ID ด้านล่างนี้นะครับ!
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/ใส่_URL_ของคุณตรงนี้/exec'; 
+    const LIFF_ID = 'ใส่_LIFF_ID_ของคุณตรงนี้'; 
+    
     let userLineUid = '';
     let healthChart = null;
+    let globalHistory = []; // ตัวแปรเก็บประวัติไว้ใช้ตอนเปลี่ยนกราฟ
 
     document.getElementById('loadingSection').style.display = 'block';
 
@@ -118,15 +129,13 @@
 
     function checkUserStatus(uid) {
         fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'check_user', lineUid: uid }) })
-            .then(res => {
-                if (!res.ok) throw new Error("Google ปฏิเสธการเชื่อมต่อ (อาจจะลืมตั้งค่าสิทธิ์ Anyone หรือลิงก์ผิด)");
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 document.getElementById('loadingSection').style.display = 'none';
                 if (data.status === 'success' && data.isRegistered) {
                     if (data.healthHistory && data.healthHistory.length > 0) {
-                        renderDashboard(data.userData, data.healthHistory);
+                        globalHistory = data.healthHistory;
+                        renderDashboard(data.userData, globalHistory);
                     } else {
                         document.getElementById('healthSection').style.display = 'block';
                     }
@@ -134,138 +143,118 @@
                     document.getElementById('registerSection').style.display = 'block';
                 }
             })
-            .catch(err => { 
-                // เปลี่ยนข้อความให้แสดง Error สีแดงชัดเจน
-                document.getElementById('loadingSection').innerHTML = `<div style="color:#ef4444; background:#fee2e2; padding:15px; border-radius:10px; font-size:14px; text-align:left; border: 1px solid #f87171;"><b>🚨 พบปัญหาการเชื่อมต่อ:</b><br>${err.message}<br><br><b>วิธีเช็ก:</b><br>1. URL ในโค้ดตรงกับ Web App หรือไม่<br>2. ตอน Deploy เลือก 'Anyone' (ทุกคน) หรือยัง</div>`; 
-            });
+            .catch(err => { document.getElementById('loadingSection').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ"; });
     }
 
     function renderDashboard(user, history) {
         document.getElementById('dashboardSection').style.display = 'block';
         document.getElementById('healthSection').style.display = 'none';
-        document.getElementById('registerSection').style.display = 'none';
-        document.getElementById('btnBackToDash').style.display = 'block'; // เปิดปุ่มย้อนกลับให้ฟอร์ม
+        document.getElementById('btnBackToDash').style.display = 'block';
 
         document.getElementById('userGreeting').innerText = `สวัสดีคุณ ${user.name} (${user.dept})`;
 
-        // ดึงข้อมูลล่าสุด
         const latest = history[history.length - 1];
         document.getElementById('dashWeight').innerText = latest.weight ? `${latest.weight} กก.` : '-';
         document.getElementById('dashBmi').innerText = latest.bmi || '-';
 
-        // ประเมินสีตามค่า BMI (เอเชีย)
         const bmi = Number(latest.bmi);
         const statusBox = document.getElementById('latestStatus');
-        if (bmi < 18.5) {
-            statusBox.className = 'status-box bg-orange';
-            statusBox.innerText = '⚠️ สถานะ: น้ำหนักน้อยกว่าเกณฑ์';
-        } else if (bmi >= 18.5 && bmi < 23) {
-            statusBox.className = 'status-box bg-green';
-            statusBox.innerText = '✅ สถานะ: ปกติสุขภาวะดี';
-        } else if (bmi >= 23 && bmi < 25) {
-            statusBox.className = 'status-box bg-orange';
-            statusBox.innerText = '⚠️ สถานะ: ท้วม / เสี่ยงอ้วน';
-        } else {
-            statusBox.className = 'status-box bg-red';
-            statusBox.innerText = '🚨 สถานะ: อ้วน (ควรดูแลสุขภาพ)';
-        }
+        if (bmi < 18.5) { statusBox.className = 'status-box bg-orange'; statusBox.innerText = '⚠️ สถานะ: น้ำหนักน้อยกว่าเกณฑ์'; } 
+        else if (bmi >= 18.5 && bmi < 23) { statusBox.className = 'status-box bg-green'; statusBox.innerText = '✅ สถานะ: ปกติสุขภาวะดี'; } 
+        else if (bmi >= 23 && bmi < 25) { statusBox.className = 'status-box bg-orange'; statusBox.innerText = '⚠️ สถานะ: ท้วม / เสี่ยงอ้วน'; } 
+        else { statusBox.className = 'status-box bg-red'; statusBox.innerText = '🚨 สถานะ: อ้วน (ควรดูแลสุขภาพ)'; }
 
-        // วาดกราฟ
-        const labels = history.map(h => h.date);
-        const weights = history.map(h => h.weight);
-        const bmis = history.map(h => h.bmi);
+        updateChart(); // สั่งวาดกราฟครั้งแรก
+    }
 
+    // ฟังก์ชันวาดกราฟตามที่เลือกใน Dropdown
+    function updateChart() {
+        if (!globalHistory || globalHistory.length === 0) return;
+        
+        const selectedMetric = document.getElementById('chartSelector').value;
+        const labels = globalHistory.map(h => h.date);
+        const dataPoints = globalHistory.map(h => h[selectedMetric]);
+
+        // ตั้งค่าสีและชื่อกราฟแต่ละประเภท
+        const configMap = {
+            weight: { label: 'น้ำหนัก (กก.)', color: '#3b82f6' },
+            bmi: { label: 'BMI', color: '#f59e0b' },
+            fatSub: { label: '% ไขมันใต้ชั้นผิวหนัง', color: '#8b5cf6' },
+            fatVisceral: { label: 'ระดับไขมันช่องท้อง', color: '#ef4444' },
+            muscle: { label: '% กล้ามเนื้อโครงร่าง', color: '#10b981' },
+            bodyAge: { label: 'อายุร่างกาย (ปี)', color: '#14b8a6' },
+            bmr: { label: 'BMR', color: '#f97316' },
+            waist: { label: 'รอบเอว (นิ้ว)', color: '#ec4899' }
+        };
+
+        const config = configMap[selectedMetric];
         const ctx = document.getElementById('trendChart').getContext('2d');
-        if (healthChart) healthChart.destroy(); // ลบกราฟเก่าถ้ามี
+        if (healthChart) healthChart.destroy();
 
         healthChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
-                datasets: [
-                    { label: 'น้ำหนัก (กก.)', data: weights, borderColor: '#3b82f6', backgroundColor: '#3b82f6', yAxisID: 'y' },
-                    { label: 'BMI', data: bmis, borderColor: '#f59e0b', backgroundColor: '#f59e0b', yAxisID: 'y1' }
-                ]
+                datasets: [{
+                    label: config.label,
+                    data: dataPoints,
+                    borderColor: config.color,
+                    backgroundColor: config.color + '33', // สีโปร่งแสงใต้เส้นกราฟ
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: config.color,
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.3 // ทำให้เส้นโค้งสมูท
+                }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'น้ำหนัก' } },
-                    y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'BMI' }, grid: { drawOnChartArea: false } }
+                    y: { 
+                        display: true, 
+                        title: { display: true, text: config.label, font: { family: 'Sarabun' } },
+                        grid: { color: '#f1f5f9' }
+                    },
+                    x: { grid: { display: false }, ticks: { font: { family: 'Sarabun' } } }
                 }
             }
         });
     }
 
-    function showHealthForm() {
-        document.getElementById('dashboardSection').style.display = 'none';
-        document.getElementById('healthSection').style.display = 'block';
-    }
+    function showHealthForm() { document.getElementById('dashboardSection').style.display = 'none'; document.getElementById('healthSection').style.display = 'block'; }
+    function showDashboard() { document.getElementById('healthSection').style.display = 'none'; document.getElementById('dashboardSection').style.display = 'block'; }
 
-    function showDashboard() {
-        document.getElementById('healthSection').style.display = 'none';
-        document.getElementById('dashboardSection').style.display = 'block';
-    }
-
-    // เมื่อกดปุ่มลงทะเบียน
+    // ลงทะเบียน
     document.getElementById('registerForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const btn = document.getElementById('btnRegister');
-        btn.disabled = true; btn.innerText = 'กำลังลงทะเบียน...';
-
-        const payload = {
-            action: 'register', lineUid: userLineUid,
-            empId: document.getElementById('empId').value,
-            name: document.getElementById('name').value,
-            dept: document.getElementById('dept').value
-        };
-
-        fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('ลงทะเบียนสำเร็จ! กรุณาบันทึกข้อมูลสุขภาพเริ่มต้นครับ');
-                    document.getElementById('registerSection').style.display = 'none';
-                    document.getElementById('healthSection').style.display = 'block';
-                } else {
-                    alert('ข้อผิดพลาด: ' + data.message);
-                    btn.disabled = false; btn.innerText = 'ลงทะเบียน';
-                }
-            });
+        const btn = document.getElementById('btnRegister'); btn.disabled = true; btn.innerText = 'กำลังลงทะเบียน...';
+        const payload = { action: 'register', lineUid: userLineUid, empId: document.getElementById('empId').value, name: document.getElementById('name').value, dept: document.getElementById('dept').value };
+        fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => {
+            if (data.status === 'success') { alert('ลงทะเบียนสำเร็จ! กรุณาบันทึกข้อมูลเริ่มต้นครับ'); document.getElementById('registerSection').style.display = 'none'; document.getElementById('healthSection').style.display = 'block'; } 
+            else { alert('ข้อผิดพลาด: ' + data.message); btn.disabled = false; btn.innerText = 'ลงทะเบียน'; }
+        });
     });
 
-    // เมื่อกดปุ่มบันทึกสุขภาพ
+    // บันทึกสุขภาพ
     document.getElementById('healthForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const btn = document.getElementById('btnHealth');
-        btn.disabled = true; btn.innerText = 'กำลังบันทึกข้อมูล...';
-
+        const btn = document.getElementById('btnHealth'); btn.disabled = true; btn.innerText = 'กำลังบันทึก...';
         const rawDate = document.getElementById('measureDate').value;
         const dateParts = rawDate.split('-');
         const payload = {
-            action: 'update_health', lineUid: userLineUid,
-            date: `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`,
-            weight: document.getElementById('weight').value,
-            bmi: document.getElementById('bmi').value,
-            waist: document.getElementById('waist').value,
-            bmr: document.getElementById('bmr').value,
-            fatSub: document.getElementById('fatSub').value || '',
-            fatVisceral: document.getElementById('fatVisceral').value || '',
-            muscle: document.getElementById('muscle').value || '',
-            bodyAge: document.getElementById('bodyAge').value || ''
+            action: 'update_health', lineUid: userLineUid, date: `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`,
+            weight: document.getElementById('weight').value, bmi: document.getElementById('bmi').value,
+            waist: document.getElementById('waist').value, bmr: document.getElementById('bmr').value,
+            fatSub: document.getElementById('fatSub').value || '', fatVisceral: document.getElementById('fatVisceral').value || '',
+            muscle: document.getElementById('muscle').value || '', bodyAge: document.getElementById('bodyAge').value || ''
         };
-
-        fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert('บันทึกข้อมูลสุขภาพเรียบร้อยแล้ว!');
-                    liff.closeWindow(); 
-                } else {
-                    alert('ข้อผิดพลาด: ' + data.message);
-                    btn.disabled = false; btn.innerText = 'บันทึกข้อมูล';
-                }
-            });
+        fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(res => res.json()).then(data => {
+            if (data.status === 'success') { alert('บันทึกเรียบร้อย!'); liff.closeWindow(); } 
+            else { alert('ข้อผิดพลาด: ' + data.message); btn.disabled = false; btn.innerText = 'บันทึกข้อมูล'; }
+        });
     });
 </script>
 </body>
